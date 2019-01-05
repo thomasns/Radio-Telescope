@@ -6,6 +6,7 @@
  * 10/15/18 
  * 
  * This is the firmware for the updated radio telescope motor controller. 
+ * Please note this is just a basic test at the moment and doesnt do anything useful.
  * Based on the MIT SRT 
  *  
  */
