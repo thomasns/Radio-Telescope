@@ -94,6 +94,7 @@ void loop() {
   if (Serial.available() > 0) { //Look for new commands
     // read the incoming byte:
     String s = Serial.readStringUntil('\n');
+    Serial.println(":" + s );
     parse(s);
   }
 }

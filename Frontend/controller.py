@@ -68,8 +68,6 @@ class RotorController:
 		self.sendCommand('move AZ ' + dir +  ' ' + str(steps/1))
 		self.statusAZ = constant.MotionStatus[1]
 		self.statusEL = constant.MotionStatus[1]
-		while self.ser.out_waiting > 0:
-			pass
 		self.e.set()
 
         #parses a command from the rotorController
@@ -105,9 +103,10 @@ class RotorController:
 			#do something:
 
 	def sendCommand(self,command):
-		print 'Sending command: ' + command
 		if self.ser.is_open:
-			self.ser.write(command)
+			print 'Sending command: ' + command
+			self.ser.write(command + "\n")
+				
 		else:
 			raise Exception('Serial port not open')
 
@@ -117,6 +116,8 @@ class RotorController:
 			self.e.wait()
 			while self.ser.in_waiting > 0:
 				line = self.ser.readline()
-				self.parseFeedback(line)
-
+				if line[0] != ':':
+					self.parseFeedback(line)
+				else:
+					print "\033[1;31m" + ' ' + line + "\033[0;0m"
 

@@ -8,7 +8,7 @@ from controller import RotorController
 rc = RotorController()
 print rc.AZ_DEGREES_PER_TICK
 
-rc.move(90,30)
+rc.move(10,10)
 
 
 
