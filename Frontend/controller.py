@@ -116,7 +116,7 @@ class RotorController:
 			self.e.wait()
 			while self.ser.in_waiting > 0:
 				line = self.ser.readline()
-				if line[0] != ':':
+				if line[0] != ':': #i've set the controller to echo commmands back for debugging, prepended with a ':'. This ignores those lines
 					self.parseFeedback(line)
 				else:
 					print "\033[1;31m" + ' ' + line + "\033[0;0m"
