@@ -4,11 +4,8 @@
 
 from controller import RotorController
 
-
 rc = RotorController()
-print rc.AZ_DEGREES_PER_TICK
-
-rc.move(10,10)
-
+rc.connect("/dev/ttyACM0")
+rc.move(5,10)
 
 

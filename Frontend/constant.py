@@ -10,6 +10,6 @@ STATION_LAT = 36.381355
 STATION_LON = -82.4155
 STATION_ALT = 453
 
-MotionStatus = ['Stopped', 'Moving', 'Homing', 'Stopped/Unverified']
+MotionStatus = ['Stopped', 'Moving', 'Homing', 'Stopped/Unverified','Disconnected']
 
 CONTROLLER_PORT = '/dev/ttyACM0'
