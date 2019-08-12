@@ -26,7 +26,13 @@ class RotorController:
 		self.ser = serial.Serial()
 
 	def connect(self,port):
+		""" 
+		Open serial connection between program and rotor hardware
 
+
+		Parameters: 
+		port (string): The path/name of the serial port
+		"""
 		self.ser = serial.Serial(port,timeout=5)
 		self.statusAZ = constant.MotionStatus[3]
 		self.statusEL = constant.MotionStatus[3]
@@ -37,13 +43,15 @@ class RotorController:
 		return line
 
 	def disconnect(self):
+		"""Closes the serial connection."""
 		
 		self.ser.close()
 		self.statusAZ = constant.MotionStatus[4]
 		self.statusEL = constant.MotionStatus[4]
 
 	def moveHome(self):
-
+	    	"""Move the rotor to it's home location"""
+		
 		if self.statusAZ == constant.MotionStatus[4] or self.statusEL == constant.MotionStatus[4]:
 			raise Exception('Not connected to motor controller')
 
@@ -59,18 +67,26 @@ class RotorController:
 		self.currentEL = constant.EL_HOME 
 
 
-	def move(self,RA,DEC):
-	
+	def move(self,targetAlt,targetAz):
+		""" 
+		Move the rotor to the specificed Altitude and Azmith
+
+		Tells the rotor hardware how many ticks to move each axis and begins monintoring controller feedback. 
+
+		Parameters: 
+		targetAlt (float): The altitude the rotor should slew to, must be between 0 and 90. 
+		targetAz (float): The azmith the rotor should slew to, must be between 0 and 360. 
+		"""
 		#sanity checks
 		if self.statusAZ == constant.MotionStatus[4]:
 			raise Exception('Not connected to motor controller')
-                if RA < -90 or RA > 90:
-                    raise Exception('RA should be between -90 and 90. RA was: {}'.format(RA))
-                if DEC < -180 or DEC > 180:
-                    raise Exception('DEC should be between -180 and 180. DEC was: {}'.format(DEC))
+                if targetAlt < 0 or targetAlt > 90:
+                    raise Exception('targetAlt should be between 0 and 90. targetAlt was: {}'.format(targetAlt))
+                if targetAz < 0 or targetAz > 360:
+                    raise Exception('targetAz should be between 0 and 360. targetAz was: {}'.format(targetAz))
 
 		#set up EL motion
-		steps = int((RA - self.currentEL) / self.EL_DEGREES_PER_TICK)
+		steps = int((targetAlt - self.currentEL) / self.EL_DEGREES_PER_TICK)
 		if(steps < 0):
 			dir = 'p'
 		else:
@@ -78,7 +94,7 @@ class RotorController:
 		#send EL  move commend
 		self.__sendCommand('move EL ' + dir +  ' ' + str(steps/1))
 		#set up AZ motion
-		steps = int((DEC - self.currentAZ) / self.AZ_DEGREES_PER_TICK)
+		steps = int((targetAz - self.currentAZ) / self.AZ_DEGREES_PER_TICK)
 		if(steps < 0):
 			dir = 'p'
 		else:
@@ -88,8 +104,29 @@ class RotorController:
 		self.statusEL = constant.MotionStatus[1]
 		self.e.set()
 
+	def isMoving(self):
+		""" 
+		Checks to see if the rotor is moving
+
+		Partial implementation. Need to update after moving from rotor simulator to hardware
+
+		Returns:True if either axis is moving, otherwise false
+		"""
+		if self.statusAZ == constant.MotionStatus[0] and self.statusEL == constant.MotionStatus[0]:
+			return False
+		return True
+
         #parses a command from the rotorController
 	def __parseFeedback(self, line):
+		""" 
+		Parses a line of feedback from the controller
+
+		Parses feedback from the rotor controller, and updates status in the class
+		
+		Paramaters:
+		line (String): the line of feedback from the rotor controller hardware
+		"""
+
 		command = line.split(':')[0]
 		params = line.split(':')[1]
 
@@ -102,9 +139,10 @@ class RotorController:
 			#do something
 		elif command == 'STOPPED':
 			print( 'Finished travel on the ' + params + ' axis')
-			if params == 'AZ':
+			print params
+			if params.strip() == 'AZ':
 				self.statusAZ = constant.MotionStatus[0]
-			elif params == 'EL':
+			elif params.strip() == 'EL':
 				self.statusEL = constant.MotionStatus[0]
 			if self.statusAZ == constant.MotionStatus[0] and self.statusEL == constant.MotionStatus[0]:
 				self.e.clear()
@@ -121,6 +159,14 @@ class RotorController:
 			#do something:
 
 	def __sendCommand(self,command):
+		""" 
+		Sends a command to the rotor controller.
+
+		Sends a command to the rotor controller. Do not use directly, let this class handle it
+		
+		Paramaters:
+		line (String): the command to send
+		"""
 		if self.statusAZ == constant.MotionStatus[4]:
 			raise Exception('Not connected to motor controller')
 		if self.ser.is_open:
@@ -132,6 +178,13 @@ class RotorController:
 
 	#this should be opened as a thread once the port has been opened
 	def __checkFeedback(self):
+		""" 
+		Checks to see if the rotor controller has a line of feedback in the buffer
+
+		Checks to see if any feedback is avilable. If any is, read it and begin parsing. 
+		This method should be ran as a thread when a command has been sent to the controller
+		
+		"""
 		while True:
 			self.e.wait()
 			while self.ser.in_waiting > 0:
