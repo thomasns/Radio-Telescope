@@ -26,5 +26,7 @@ class Tracking:
 	def calcAltAz(self):
 		t = self.ts.now()
 		apparent = self.location.at(t).observe(self.target).apparent().altaz()
-		print apparent
+		print apparent[0]
+		print apparent[0].degrees	
+		return apparent
 		

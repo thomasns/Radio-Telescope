@@ -7,7 +7,6 @@ from controller import RotorController
 from tracking import Tracking
 
 def __start():
-	print "boom"
 	listener = threading.Thread(target=track, args=())                                            
 	e = threading.Event()                                                                                        
 	listener.start() 
@@ -16,16 +15,15 @@ def __start():
 def track(): 
 	while True:
 		#check if rotor is moving
-		print "checking movement"
 		print Rotor.isMoving()
 		if Rotor.isMoving():
 			print "Rotor moving, sleeping"
-			time.sleep(1)
+			time.sleep(5)
 		else: 
 			print "Rotor stopped, calculating"
 
-			print Tracker.calcAltAz()
-
+			alt,az, dist =  Tracker.calcAltAz()
+			Rotor.move(alt.degrees,az.degrees)
 	
 
 #setup location
@@ -37,15 +35,15 @@ location = earth + Topos('36.31205 N', '81.35347 W')
 
 #setup test target
 #barnard = Star(ra_hours=(17,57,48.49803), dec_degrees(4,41,36.2072))
-barnard = Star(ra_hours=(16, 51, 47.29), dec_degrees=(-22, 6, 26.3))
-Tracker = Tracking(barnard,location)
+testTarget = Star(ra_hours=(22, 57, 39.52), dec_degrees=(-29,37,24))
+Tracker = Tracking(testTarget,location)
 
 Tracker.calcAltAz()
 
 
 Rotor = RotorController()
 Rotor.connect("/dev/ttyACM0")
-Rotor.move(.5,1)
+Rotor.move(0,0)
 __start()
 
 
